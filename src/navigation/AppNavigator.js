@@ -1,14 +1,16 @@
+// src/navigation/AppNavigator.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import ARScreen from '../screens/ARScreen';
 import ModelScreen from '../screens/ModelScreen';
 import FavoriteScreen from '../screens/FavoriteScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SavedScreen from '../screens/SavedScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -18,7 +20,7 @@ function MainTabNavigator({ onLogout }) {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+          let iconName = 'home-outline';
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
@@ -28,6 +30,8 @@ function MainTabNavigator({ onLogout }) {
             iconName = focused ? 'camera' : 'camera-outline';
           } else if (route.name === 'Favorite') {
             iconName = focused ? 'heart' : 'heart-outline';
+          } else if (route.name === 'Saved') {
+            iconName = focused ? 'images' : 'images-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -37,34 +41,35 @@ function MainTabNavigator({ onLogout }) {
         tabBarActiveTintColor: '#667eea',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: styles.tabBar,
-        headerStyle: {
-          backgroundColor: '#667eea',
-        },
+        headerStyle: { backgroundColor: '#667eea' },
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerTitleStyle: { fontWeight: 'bold' },
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ title: 'หน้าหลัก' }} 
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: 'หน้าหลัก' }}
       />
-      <Tab.Screen 
-        name="Model" 
-        component={ModelScreen} 
-        options={{ title: 'โมเดล' }} 
+      <Tab.Screen
+        name="Model"
+        component={ModelScreen}
+        options={{ title: 'โมเดล' }}
       />
-      <Tab.Screen 
-        name="AR" 
-        component={ARScreen} 
-        options={{ title: 'AR' }} 
+      <Tab.Screen
+        name="AR"
+        component={ARScreen}
+        options={{ title: 'AR' }}
       />
-      <Tab.Screen 
-        name="Favorite" 
-        component={FavoriteScreen} 
-        options={{ title: 'รายการโปรด' }} 
+      <Tab.Screen
+        name="Favorite"
+        component={FavoriteScreen}
+        options={{ title: 'รายการโปรด' }}
+      />
+      <Tab.Screen
+        name="Saved"
+        component={SavedScreen}
+        options={{ title: 'ที่บันทึก' }}
       />
       <Tab.Screen name="Profile" options={{ title: 'โปรไฟล์' }}>
         {() => <ProfileScreen onLogout={onLogout} />}
