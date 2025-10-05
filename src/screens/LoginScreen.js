@@ -1,103 +1,99 @@
-
+// src/screens/LoginScreen.js (fixed - pure JS)
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ImageBackground,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
+const ROLES = [
+  { key: 'visitor', label: 'ทดลองใช้' },
+  { key: 'user', label: 'ผู้ใช้' },
+  { key: 'admin', label: 'แอดมิน' },
+];
+
 export default function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('visitor');          // <<< แก้ตรงนี้
+  const [email, setEmail] = useState('demo@arwheel.com');
+  const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '') {
-      Alert.alert('ข้อผิดพลาด', 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+  const submit = () => {
+    if (role === 'visitor') {
+      onLogin?.();
       return;
     }
-
-    // จำลองการเข้าสู่ระบบ
-    if (username === 'demo' && password === '123456') {
-      Alert.alert('สำเร็จ', 'เข้าสู่ระบบสำเร็จ!', [
-        { text: 'ตกลง', onPress: onLogin }
-      ]);
-    } else {
-      Alert.alert('ข้อผิดพลาด', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง\n\nทดลองใช้:\nUsername: demo\nPassword: 123456');
+    if (role === 'admin') {
+      if (email === 'admin@arwheel.com' && password === 'admin123') onLogin?.();
+      else Alert.alert('ไม่สำเร็จ', 'อีเมลหรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง');
+      return;
     }
+    if (!email.includes('@') || password.length < 6) {
+      Alert.alert('กรอกไม่ครบ', 'โปรดกรอกอีเมลให้ถูกต้องและรหัสผ่านอย่างน้อย 6 ตัวอักษร');
+      return;
+    }
+    onLogin?.();
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.gradient}
-      >
-        <View style={styles.loginCard}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="car-sport" size={80} color="#667eea" />
-            <Text style={styles.logoText}>AR Wheel</Text>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.gradient}>
+        <View style={styles.card}>
+          <View style={styles.logoWrap}>
+            <Ionicons name="car-sport" size={72} color="#667eea" />
+            <Text style={styles.title}>AR Wheel</Text>
             <Text style={styles.subtitle}>ระบบทดลองล้อแม็กซ์ด้วย AR</Text>
           </View>
-
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="ชื่อผู้ใช้"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="รหัสผ่าน"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity 
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
+          <View style={styles.roleBar}>
+            {ROLES.map(r => (
+              <TouchableOpacity
+                key={r.key}
+                onPress={() => setRole(r.key)}
+                style={[styles.roleBtn, role === r.key && styles.roleBtnActive]}
               >
-                <Ionicons 
-                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={20} 
-                  color="#666" 
-                />
+                <Text style={[styles.roleTxt, role === r.key && styles.roleTxtActive]}>{r.label}</Text>
               </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <LinearGradient
-                colors={['#667eea', '#764ba2']}
-                style={styles.buttonGradient}
-              >
-                <Text style={styles.loginButtonText}>เข้าสู่ระบบ</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <View style={styles.demoInfo}>
-              <Text style={styles.demoText}>บัญชีทดลอง:</Text>
-              <Text style={styles.demoCredentials}>Username: demo</Text>
-              <Text style={styles.demoCredentials}>Password: 123456</Text>
-            </View>
+            ))}
+          </View>
+          {role !== 'visitor' && (
+            <>
+              <View style={styles.inputRow}>
+                <Ionicons name="mail-outline" size={18} color="#666" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="อีเมล"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+              <View style={styles.inputRow}>
+                <Ionicons name="lock-closed-outline" size={18} color="#666" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="รหัสผ่าน"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+          <TouchableOpacity style={styles.submit} onPress={submit}>
+            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.submitGrad}>
+              <Text style={styles.submitText}>
+                {role === 'visitor' ? 'เข้าใช้งานแบบทดลอง' : 'เข้าสู่ระบบ'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <View style={styles.demoBox}>
+            <Text style={styles.demoTitle}>บัญชีทดสอบ:</Text>
+            <Text style={styles.demoLine}>User: demo@arwheel.com  / Pass: 123456</Text>
+            <Text style={styles.demoLine}>Admin: admin@arwheel.com / Pass: admin123</Text>
           </View>
         </View>
       </LinearGradient>
@@ -106,99 +102,29 @@ export default function LoginScreen({ onLogin }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  gradient: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  card: {
+    backgroundColor: '#fff', borderRadius: 20, padding: 26, width: '100%', maxWidth: 420,
+    shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 8 }, elevation: 12
   },
-  gradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  logoWrap: { alignItems: 'center', marginBottom: 22 },
+  title: { fontSize: 30, fontWeight: 'bold', color: '#667eea', marginTop: 8 },
+  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  roleBar: { flexDirection: 'row', backgroundColor: '#eef0ff', borderRadius: 999, padding: 4, marginTop: 12, marginBottom: 12 },
+  roleBtn: { flex: 1, paddingVertical: 8, borderRadius: 999, alignItems: 'center' },
+  roleBtnActive: { backgroundColor: '#667eea' },
+  roleTxt: { color: '#667eea', fontSize: 13 },
+  roleTxtActive: { color: '#fff', fontWeight: '700' },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: '#f9f9f9', marginBottom: 12,
   },
-  loginCard: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 30,
-    width: '100%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 15,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#667eea',
-    marginTop: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  formContainer: {
-    width: '100%',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 15,
-    marginBottom: 20,
-    paddingHorizontal: 15,
-    backgroundColor: '#f9f9f9',
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 5,
-  },
-  loginButton: {
-    borderRadius: 15,
-    overflow: 'hidden',
-    marginTop: 10,
-  },
-  buttonGradient: {
-    padding: 15,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  demoInfo: {
-    marginTop: 30,
-    padding: 15,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  demoText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  demoCredentials: {
-    fontSize: 12,
-    color: '#666',
-  },
+  input: { flex: 1, height: 48, fontSize: 16 },
+  submit: { borderRadius: 14, overflow: 'hidden', marginTop: 4 },
+  submitGrad: { paddingVertical: 14, alignItems: 'center' },
+  submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  demoBox: { marginTop: 18, padding: 12, backgroundColor: '#f3f4f6', borderRadius: 12, alignItems: 'center' },
+  demoTitle: { fontWeight: '700', color: '#333', marginBottom: 4, fontSize: 13 },
+  demoLine: { fontSize: 12, color: '#666' },
 });
