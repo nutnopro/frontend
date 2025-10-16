@@ -4,17 +4,17 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../context/ThemeContext'; // ✅ ใช้ธีมส่วนกลาง
+import { useTheme } from '../context/ThemeContext';
 
 const ProfileItem = ({ icon, title, subtitle, onPress, rightElement, colors }) => (
   <TouchableOpacity style={[styles.profileItem, { borderBottomColor: colors.border }]} onPress={onPress}>
     <View style={styles.profileItemLeft}>
-      <View style={[styles.iconContainer, { backgroundColor: colors.bg }]}>
+      <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
         <Ionicons name={icon} size={20} color={colors.primary} />
       </View>
       <View>
         <Text style={[styles.profileItemTitle, { color: colors.text }]}>{title}</Text>
-        {subtitle && <Text style={[styles.profileItemSubtitle, { color: colors.textDim }]}>{subtitle}</Text>}
+        {subtitle ? <Text style={[styles.profileItemSubtitle, { color: colors.textDim }]}>{subtitle}</Text> : null}
       </View>
     </View>
     <View style={styles.profileItemRight}>
@@ -25,8 +25,6 @@ const ProfileItem = ({ icon, title, subtitle, onPress, rightElement, colors }) =
 
 export default function ProfileScreen({ navigation, onLogout }) {
   const [notifications, setNotifications] = useState(true);
-
-  // ✅ ดึงค่าจาก ThemeContext
   const { colors, isDark, toggleTheme } = useTheme();
 
   const handleLogout = () => {
@@ -93,7 +91,6 @@ export default function ProfileScreen({ navigation, onLogout }) {
             />
           }
         />
-        {/* ✅ ใช้ isDark / toggleTheme แทน useState */}
         <ProfileItem
           colors={colors}
           icon="moon-outline"
@@ -154,7 +151,10 @@ export default function ProfileScreen({ navigation, onLogout }) {
 }
 
 const styles = StyleSheet.create({
-  profileHeader: { alignItems: 'center', padding: 26, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 10 },
+  profileHeader: {
+    alignItems: 'center', padding: 26,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 10,
+  },
   avatarContainer: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   userName: { fontSize: 24, fontWeight: 'bold', marginBottom: 5 },
   userEmail: { fontSize: 16, marginBottom: 20 },
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
   },
   profileItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   iconContainer: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-
   profileItemTitle: { fontSize: 16, fontWeight: '500' },
   profileItemSubtitle: { fontSize: 14, marginTop: 2 },
   profileItemRight: { marginLeft: 10 },

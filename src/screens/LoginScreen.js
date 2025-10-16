@@ -1,4 +1,4 @@
-// src/screens/LoginScreen.js (fixed - pure JS)
+// src/screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform
@@ -12,8 +12,8 @@ const ROLES = [
   { key: 'admin', label: 'แอดมิน' },
 ];
 
-export default function LoginScreen({ onLogin }) {
-  const [role, setRole] = useState('visitor');          // <<< แก้ตรงนี้
+export default function LoginScreen({ onLogin, navigation }) {
+  const [role, setRole] = useState('visitor');
   const [email, setEmail] = useState('demo@arwheel.com');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +35,10 @@ export default function LoginScreen({ onLogin }) {
     onLogin?.();
   };
 
+  const goRegister = () => {
+    navigation?.navigate?.('Register', { onRegistered: onLogin });
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <LinearGradient colors={['#667eea', '#764ba2']} style={styles.gradient}>
@@ -44,6 +48,7 @@ export default function LoginScreen({ onLogin }) {
             <Text style={styles.title}>AR Wheel</Text>
             <Text style={styles.subtitle}>ระบบทดลองล้อแม็กซ์ด้วย AR</Text>
           </View>
+
           <View style={styles.roleBar}>
             {ROLES.map(r => (
               <TouchableOpacity
@@ -55,6 +60,7 @@ export default function LoginScreen({ onLogin }) {
               </TouchableOpacity>
             ))}
           </View>
+
           {role !== 'visitor' && (
             <>
               <View style={styles.inputRow}>
@@ -78,11 +84,12 @@ export default function LoginScreen({ onLogin }) {
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#666" />
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#666" />
                 </TouchableOpacity>
               </View>
             </>
           )}
+
           <TouchableOpacity style={styles.submit} onPress={submit}>
             <LinearGradient colors={['#667eea', '#764ba2']} style={styles.submitGrad}>
               <Text style={styles.submitText}>
@@ -90,6 +97,14 @@ export default function LoginScreen({ onLogin }) {
               </Text>
             </LinearGradient>
           </TouchableOpacity>
+
+          {/* ลิงก์สมัครสมาชิก */}
+          {role !== 'admin' && (
+            <TouchableOpacity style={styles.registerLink} onPress={goRegister}>
+              <Text style={styles.registerText}>ยังไม่มีบัญชี? สมัครสมาชิก</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.demoBox}>
             <Text style={styles.demoTitle}>บัญชีทดสอบ:</Text>
             <Text style={styles.demoLine}>User: demo@arwheel.com  / Pass: 123456</Text>
@@ -124,6 +139,10 @@ const styles = StyleSheet.create({
   submit: { borderRadius: 14, overflow: 'hidden', marginTop: 4 },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
   submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  registerLink: { marginTop: 10, alignItems: 'center' },
+  registerText: { color: '#667eea', fontWeight: '600' },
+
   demoBox: { marginTop: 18, padding: 12, backgroundColor: '#f3f4f6', borderRadius: 12, alignItems: 'center' },
   demoTitle: { fontWeight: '700', color: '#333', marginBottom: 4, fontSize: 13 },
   demoLine: { fontSize: 12, color: '#666' },
