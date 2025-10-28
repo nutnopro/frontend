@@ -1,178 +1,239 @@
 // src/screens/ProfileScreen.js
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Switch,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  ImageBackground,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
-const ProfileItem = ({ icon, title, subtitle, onPress, rightElement, colors }) => (
-  <TouchableOpacity style={[styles.profileItem, { borderBottomColor: colors.border }]} onPress={onPress}>
-    <View style={styles.profileItemLeft}>
-      <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
-        <Ionicons name={icon} size={20} color={colors.primary} />
+const Row = ({ icon, title, subtitle, onPress, right, colors }) => (
+  <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
+      <View style={[styles.iconWrap, { backgroundColor: colors.bg }]}>
+        <Ionicons name={icon} size={18} color={colors.text} />
       </View>
-      <View>
-        <Text style={[styles.profileItemTitle, { color: colors.text }]}>{title}</Text>
-        {subtitle ? <Text style={[styles.profileItemSubtitle, { color: colors.textDim }]}>{subtitle}</Text> : null}
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
+        {subtitle ? (
+          <Text style={[styles.rowSub, { color: colors.textDim }]}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
-    </View>
-    <View style={styles.profileItemRight}>
-      {rightElement || <Ionicons name="chevron-forward" size={20} color={colors.textDim} />}
+      {right ?? (
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      )}
     </View>
   </TouchableOpacity>
 );
 
 export default function ProfileScreen({ navigation, onLogout }) {
-  const [notifications, setNotifications] = useState(true);
   const { colors, isDark, toggleTheme } = useTheme();
-
-  const handleLogout = () => {
-    Alert.alert('ออกจากระบบ', 'คุณต้องการออกจากระบบหรือไม่?', [
-      { text: 'ยกเลิก', style: 'cancel' },
-      { text: 'ออกจากระบบ', style: 'destructive', onPress: onLogout },
-    ]);
-  };
+  const [notif, setNotif] = useState(true);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bg }}
+      // เพิ่ม paddingBottom เพื่อไม่ให้โดนแท็บบาร์บัง
+      contentContainerStyle={{ paddingBottom: 160 }}
+    >
       {/* Header */}
-      <View style={[styles.profileHeader, { backgroundColor: colors.primary }]}>
-        <View style={[styles.avatarContainer, { backgroundColor: '#ffffff22' }]}>
-          <Ionicons name="person" size={40} color="#fff" />
+      <ImageBackground
+        source={{
+          uri: 'https://images.unsplash.com/photo-1520975922139-a6b6b2924d32?w=1200&q=80&auto=format&fit=crop',
+        }}
+        style={styles.headerBg}
+        imageStyle={{ opacity: 0.25 }}
+      >
+        <View style={styles.headerCard}>
+          <View style={[styles.avatar, { borderColor: '#fff' }]}>
+            <Ionicons name="person" size={34} color="#fff" />
+            <View style={styles.editBadge}>
+              <Ionicons name="pencil" size={12} color="#0e1b33" />
+            </View>
+          </View>
+
+          <Text style={styles.storeName}>store_name</Text>
+          <Text style={styles.email}>sample@gmail.com</Text>
+          <Text style={styles.email}>phone_number</Text>
+          <Text style={styles.email}>address</Text>
+
+          <TouchableOpacity style={styles.editBtn} onPress={() => {}}>
+            <Text style={styles.editBtnTxt}>Edit Profile</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={[styles.userName, { color: '#fff' }]}>ผู้ใช้ Demo</Text>
-        <Text style={[styles.userEmail, { color: '#E9ECFF' }]}>demo@arwheel.com</Text>
-        <TouchableOpacity style={[styles.editProfileButton, { backgroundColor: '#fff' }]}>
-          <Text style={{ color: colors.primary, fontWeight: 'bold' }}>แก้ไขโปรไฟล์</Text>
-        </TouchableOpacity>
-      </View>
+      </ImageBackground>
 
-      {/* บัญชี */}
-      <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>บัญชี</Text>
-        <ProfileItem
+      {/* Menu */}
+      <View style={{ paddingHorizontal: 12, marginTop: 10 }}>
+        <Row
           colors={colors}
-          icon="heart-outline"
-          title="รายการโปรด"
-          subtitle="ล้อแม็กซ์ที่คุณบันทึกไว้"
-          onPress={() => navigation.navigate('Favorites')}
+          icon="construct-outline"
+          title="Manage models"
+          onPress={() => navigation.navigate('ManageModels')}
         />
-        <ProfileItem
+        <Row
           colors={colors}
-          icon="images-outline"
-          title="ที่บันทึก"
-          subtitle="รูปภาพ/ไฟล์ของฉัน"
-          onPress={() => navigation.navigate('Saved')}
+          icon="stats-chart-outline"
+          title="Statistics"
+          onPress={() => navigation.navigate('Statistics')}
         />
-        <ProfileItem
+        <Row
           colors={colors}
-          icon="camera-outline"
-          title="ประวัติ AR"
-          subtitle="การทดลองที่ผ่านมา"
-          onPress={() => Alert.alert('ประวัติ AR', 'เปิดหน้าประวัติการใช้งาน')}
+          icon="lock-closed-outline"
+          title="Change password"
+          onPress={() => navigation.navigate('ChangePassword')}
         />
-      </View>
-
-      {/* การตั้งค่า */}
-      <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>การตั้งค่า</Text>
-        <ProfileItem
+        <Row
           colors={colors}
-          icon="notifications-outline"
-          title="การแจ้งเตือน"
-          subtitle="จัดการการแจ้งเตือน"
-          rightElement={
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={'#fff'}
-            />
-          }
+          icon="language-outline"
+          title="Language"
+          subtitle="Thai"
+          onPress={() => navigation.navigate('Language')}
         />
-        <ProfileItem
+        <Row
           colors={colors}
-          icon="moon-outline"
-          title="โหมดมืด"
-          subtitle={isDark ? 'เปิดอยู่' : 'ปิดอยู่'}
-          rightElement={
+          icon="color-palette-outline"
+          title="Theme"
+          subtitle={isDark ? 'Dark' : 'Light'}
+          right={
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
               trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={'#fff'}
+              thumbColor="#fff"
             />
           }
         />
-        <ProfileItem
+        <Row
           colors={colors}
-          icon="language-outline"
-          title="ภาษา"
-          subtitle="ไทย"
-          onPress={() => Alert.alert('ภาษา', 'เลือกภาษาที่ต้องการ')}
+          icon="notifications-outline"
+          title="Notification"
+          right={
+            <Switch
+              value={notif}
+              onValueChange={setNotif}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor="#fff"
+            />
+          }
         />
-      </View>
+        <Row
+          colors={colors}
+          icon="settings-outline"
+          title="AR preferences"
+          onPress={() => navigation.navigate('ARPreferences')}
+        />
 
-      {/* ช่วยเหลือ */}
-      <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>ช่วยเหลือ</Text>
-        <ProfileItem
-          colors={colors}
-          icon="help-circle-outline"
-          title="ความช่วยเหลือ"
-          subtitle="คำถามที่พบบ่อยและการสนับสนุน"
-          onPress={() => Alert.alert('ความช่วยเหลือ', 'เปิดหน้าช่วยเหลือ')}
-        />
-        <ProfileItem
-          colors={colors}
-          icon="information-circle-outline"
-          title="เกี่ยวกับแอป"
-          subtitle="เวอร์ชัน 1.0.0"
-          onPress={() => Alert.alert('เกี่ยวกับ', 'AR Wheel App v1.0.0\nพัฒนาโดยทีม AR Development')}
-        />
-      </View>
-
-      {/* Logout */}
-      <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#ff4444" />
-          <Text style={[styles.logoutText, { color: '#ff4444' }]}>ออกจากระบบ</Text>
+        {/* --- Logout Row (ชัดเจน ไม่ถูกบัง) --- */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('Logout', { onConfirm: onLogout })}
+          style={styles.logoutRow}
+        >
+          <View style={styles.logoutIconWrap}>
+            <Ionicons name="log-out-outline" size={18} color="#ff4d4f" />
+          </View>
+          <Text style={styles.logoutText}>Logout</Text>
+          <Ionicons name="chevron-forward" size={18} color="#ff9a9a" />
         </TouchableOpacity>
       </View>
 
-      {/* Footer */}
-      <View style={{ alignItems: 'center', padding: 20 }}>
-        <Text style={{ fontSize: 12, color: colors.textDim }}>AR Wheel App v1.0.0</Text>
-        <Text style={{ fontSize: 12, color: colors.textDim }}>© 2024 AR Development Team</Text>
-      </View>
+      {/* กันเผื่อพื้นที่เพิ่มด้านล่างอีกชั้น (เผื่อเครื่องที่แท็บบาร์สูง) */}
+      <View style={{ height: 24 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  profileHeader: {
-    alignItems: 'center', padding: 26,
-    borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 10,
+  headerBg: { paddingHorizontal: 12, paddingTop: 12 },
+  headerCard: {
+    borderRadius: 18,
+    padding: 16,
+    backgroundColor: '#ffffff25',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  avatarContainer: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  userName: { fontSize: 24, fontWeight: 'bold', marginBottom: 5 },
-  userEmail: { fontSize: 16, marginBottom: 20 },
-  editProfileButton: { paddingHorizontal: 30, paddingVertical: 10, borderRadius: 20 },
-
-  menuSection: { marginBottom: 10, paddingVertical: 10, borderRadius: 16, marginHorizontal: 10, overflow: 'hidden' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, marginHorizontal: 20 },
-
-  profileItem: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1,
+  avatar: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0e1b33',
   },
-  profileItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  iconContainer: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  profileItemTitle: { fontSize: 16, fontWeight: '500' },
-  profileItemSubtitle: { fontSize: 14, marginTop: 2 },
-  profileItemRight: { marginLeft: 10 },
+  editBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#fff',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storeName: { color: '#fff', fontWeight: '800', fontSize: 18, marginTop: 10 },
+  email: { color: '#E9ECFF', fontSize: 12, marginTop: 2 },
+  editBtn: {
+    backgroundColor: '#0e1b33',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginTop: 12,
+  },
+  editBtnTxt: { color: '#fff', fontWeight: '700' },
 
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, paddingHorizontal: 20 },
-  logoutText: { fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  iconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  rowTitle: { fontWeight: '700', fontSize: 14 },
+  rowSub: { marginTop: 2, fontSize: 12 },
+
+  // --- Logout styles ---
+  logoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 8,
+    backgroundColor: '#fff1f0',
+    borderWidth: 1,
+    borderColor: '#ffd6d6',
+  },
+  logoutIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    backgroundColor: '#ffecec',
+  },
+  logoutText: { flex: 1, fontWeight: '800', color: '#ff4d4f', fontSize: 14 },
 });

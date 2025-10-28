@@ -1,9 +1,8 @@
 // App.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Provider as PaperProvider } from 'react-native-paper';
-import * as SplashScreen from 'expo-splash-screen';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import LoginScreen from './src/screens/LoginScreen';
@@ -12,12 +11,12 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { FavoritesProvider } from './src/context/FavoritesContext';
 
-// ให้ Splash ค้างไว้จนกว่าจะพร้อม
+// ให้ Splash อยู่จนกว่าพร้อม
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const AuthStack = createStackNavigator();
 
-// ทำให้ React Navigation รับธีมเดียวกับ ThemeContext
+/** ทำให้ธีมของ React Navigation ตรงกับ ThemeContext */
 function WithNavigationTheme({ children }) {
   const { isDark, colors } = useTheme();
   const navTheme = {
@@ -36,52 +35,66 @@ function WithNavigationTheme({ children }) {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        // โหลดทรัพยากร/เตรียมแอป (จำลอง 1.5s)
-        await new Promise(r => setTimeout(r, 1500));
+        // mock โหลดทรัพยากร
+        await new Promise((r) => setTimeout(r, 1200));
       } finally {
-        setAppIsReady(true);
+        setAppReady(true);
         try { await SplashScreen.hideAsync(); } catch {}
       }
     })();
   }, []);
 
-  if (!appIsReady) return null;
+  if (!appReady) return null;
 
   return (
-    <PaperProvider>
-      <ThemeProvider>
-        <FavoritesProvider>
-          <WithNavigationTheme>
-            {isLoggedIn ? (
-              <AppNavigator onLogout={() => setIsLoggedIn(false)} />
-            ) : (
-              // สแตกก่อนล็อกอิน: Login → Register
-              <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-                <AuthStack.Screen name="Login">
-                  {(props) => (
-                    <LoginScreen
-                      {...props}
-                      onLogin={() => setIsLoggedIn(true)}
-                      onGoRegister={() => props.navigation.navigate('Register')}
-                    />
-                  )}
-                </AuthStack.Screen>
-                <AuthStack.Screen
-                  name="Register"
-                  // RegisterScreen ควรเรียก props.route.params.onRegistered() เมื่อสมัครสำเร็จ
-                  initialParams={{ onRegistered: () => setIsLoggedIn(true) }}
-                  component={RegisterScreen}
-                />
-              </AuthStack.Navigator>
-            )}
-          </WithNavigationTheme>
-        </FavoritesProvider>
-      </ThemeProvider>
-    </PaperProvider>
+    <ThemeProvider>
+      <FavoritesProvider>
+        <WithNavigationTheme>
+          {isLoggedIn ? (
+            <AppNavigator onLogout={() => setIsLoggedIn(false)} />
+          ) : (
+            <AuthStack.Navigator
+              screenOptions={{
+                headerShown: false, // ปิด header เป็นค่าเริ่มต้น
+              }}
+            >
+              {/* Login ไม่มี header */}
+              <AuthStack.Screen name="Login">
+                {(props) => (
+                  <LoginScreen
+                    {...props}
+                    onLogin={() => setIsLoggedIn(true)}
+                  />
+                )}
+              </AuthStack.Screen>
+
+              {/* Register แสดง header เพื่อให้มีปุ่มย้อนกลับอัตโนมัติ */}
+              <AuthStack.Screen
+                name="Register"
+                options={{
+                  headerShown: true,
+                  title: 'Create a new account',
+                  headerBackTitleVisible: false,
+                  headerStyle: { backgroundColor: '#FFFFFF' },
+                  headerTintColor: '#1A1A1A', // สีไอคอนย้อนกลับ/ตัวอักษร
+                }}
+              >
+                {(props) => (
+                  <RegisterScreen
+                    {...props}
+                    onRegistered={() => setIsLoggedIn(true)}
+                  />
+                )}
+              </AuthStack.Screen>
+            </AuthStack.Navigator>
+          )}
+        </WithNavigationTheme>
+      </FavoritesProvider>
+    </ThemeProvider>
   );
 }

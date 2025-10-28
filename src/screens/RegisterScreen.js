@@ -1,135 +1,80 @@
 // src/screens/RegisterScreen.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, Switch } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function RegisterScreen({ navigation, route }) {
-  // รับฟังก์ชันหลังสมัครสำเร็จ (เราจะส่งมาจาก App.js)
+  const { colors } = useTheme();
   const onRegistered = route?.params?.onRegistered;
 
-  const [name, setName] = useState('');
+  const [first, setFirst] = useState('');
+  const [last, setLast] = useState('');
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [consent, setConsent] = useState(true);
 
   const submit = () => {
-    if (!name.trim() || !email.trim() || !pass.trim() || !confirm.trim()) {
-      Alert.alert('กรอกไม่ครบ', 'โปรดกรอกข้อมูลให้ครบทุกช่อง');
+    if (!first || !last || !email.includes('@') || pass.length < 6 || pass !== confirm || !consent) {
+      Alert.alert('กรอกข้อมูลไม่ครบ', 'โปรดตรวจสอบข้อมูลทั้งหมด');
       return;
     }
-    if (!email.includes('@')) {
-      Alert.alert('อีเมลไม่ถูกต้อง', 'กรุณาตรวจสอบรูปแบบอีเมล');
-      return;
-    }
-    if (pass.length < 6) {
-      Alert.alert('รหัสผ่านสั้นเกินไป', 'รหัสผ่านอย่างน้อย 6 ตัวอักษร');
-      return;
-    }
-    if (pass !== confirm) {
-      Alert.alert('ยืนยันรหัสผ่านไม่ตรงกัน', 'โปรดตรวจสอบอีกครั้ง');
-      return;
-    }
-
-    // Mock สมัครสำเร็จ
-    Alert.alert('สมัครสำเร็จ', 'ยินดีต้อนรับสู่ AR Wheel!', [
-      {
-        text: 'ไปใช้งาน',
-        onPress: () => {
-          // ล็อกอินอัตโนมัติหลังสมัคร (ฝั่ง frontend)
-          if (typeof onRegistered === 'function') onRegistered();
-        },
-      },
+    Alert.alert('สำเร็จ', 'สร้างบัญชีผู้ใช้แล้ว (เดโม่)', [
+      { text: 'เริ่มต้นใช้งาน', onPress: () => onRegistered?.() },
     ]);
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.gradient}>
-        <View style={styles.card}>
-          <View style={{ alignItems: 'center', marginBottom: 16 }}>
-            <Ionicons name="person-add" size={52} color="#667eea" />
-            <Text style={styles.title}>สมัครสมาชิก</Text>
-            <Text style={styles.subtitle}>สร้างบัญชีใหม่เพื่อเริ่มใช้งาน</Text>
-          </View>
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Create a new account</Text>
 
-          <View style={styles.inputRow}>
-            <Ionicons name="person-outline" size={18} color="#666" />
-            <TextInput style={styles.input} placeholder="ชื่อ-นามสกุล" value={name} onChangeText={setName} />
-          </View>
+        <Row>
+          <Field flex label="ชื่อ" value={first} onChange={setFirst} />
+          <Field flex label="นามสกุล" value={last} onChange={setLast} />
+        </Row>
+        <Field label="Email" value={email} onChange={setEmail} keyboardType="email-address" />
+        <Field label="Password" value={pass} onChange={setPass} secure />
+        <Field label="Confirm Password" value={confirm} onChange={setConfirm} secure />
 
-          <View style={styles.inputRow}>
-            <Ionicons name="mail-outline" size={18} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="อีเมล"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          </View>
-
-          <View style={styles.inputRow}>
-            <Ionicons name="lock-closed-outline" size={18} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)"
-              value={pass}
-              onChangeText={setPass}
-              secureTextEntry={!showPass}
-            />
-            <TouchableOpacity onPress={() => setShowPass(!showPass)}>
-              <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputRow}>
-            <Ionicons name="lock-closed-outline" size={18} color="#666" />
-            <TextInput
-              style={styles.input}
-              placeholder="ยืนยันรหัสผ่าน"
-              value={confirm}
-              onChangeText={setConfirm}
-              secureTextEntry={!showConfirm}
-            />
-            <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
-              <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.submit} onPress={submit}>
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.submitGrad}>
-              <Text style={styles.submitText}>สมัครสมาชิก</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ marginTop: 14, alignItems: 'center' }} onPress={() => navigation.goBack()}>
-            <Text style={{ color: '#667eea', fontWeight: '600' }}>มีบัญชีอยู่แล้ว? กลับไปเข้าสู่ระบบ</Text>
-          </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Switch value={consent} onValueChange={setConsent} trackColor={{ false: colors.border, true: colors.secondary || '#00C6AE' }} />
+          <Text style={{ marginLeft: 8, color: colors.text }}>ยินยอมรับข่าวสาร/อัปเดตจากแอป</Text>
         </View>
-      </LinearGradient>
+
+        <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={submit}>
+          <Text style={{ color: '#fff', fontWeight: '800' }}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
+function Row({ children }) {
+  return <View style={{ flexDirection: 'row', gap: 8 }}>{children}</View>;
+}
+
+function Field({ label, value, onChange, secure, keyboardType, flex }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ marginBottom: 10, flex: flex ? 1 : undefined }}>
+      <Text style={{ color: colors.text, marginBottom: 6 }}>{label}</Text>
+      <TextInput
+        style={{ borderColor: colors.border, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, height: 44, color: colors.text }}
+        placeholder={label}
+        placeholderTextColor="#888"
+        value={value}
+        onChangeText={onChange}
+        secureTextEntry={secure}
+        keyboardType={keyboardType}
+        autoCapitalize="none"
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  gradient: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  card: {
-    backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 420,
-    shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 8 }, elevation: 12,
-  },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#667eea', marginTop: 8 },
-  subtitle: { fontSize: 13, color: '#666', marginTop: 4 },
-  inputRow: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
-    backgroundColor: '#f9f9f9', marginBottom: 10,
-  },
-  input: { flex: 1, height: 46, fontSize: 16 },
-  submit: { borderRadius: 14, overflow: 'hidden', marginTop: 8 },
-  submitGrad: { paddingVertical: 14, alignItems: 'center' },
-  submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1, padding: 18 },
+  title: { fontSize: 20, fontWeight: '800', marginBottom: 12 },
+  btn: { marginTop: 12, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 });

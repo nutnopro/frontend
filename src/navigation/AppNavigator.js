@@ -6,23 +6,27 @@ import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
 import ARScreen from '../screens/ARScreen';
-import ModelScreen from '../screens/ModelScreen';       // ✅ ใช้ที่นี่
-import FavoriteScreen from '../screens/FavoriteScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import FavoriteScreen from '../screens/FavoriteScreen';
 import SavedScreen from '../screens/SavedScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import LanguageScreen from '../screens/LanguageScreen';
+import StatisticsScreen from '../screens/StatisticsScreen';
+import ManageModelsScreen from '../screens/ManageModelsScreen';
 
+import ModelDetailScreen from '../screens/ModelDetailScreen';
 import BackButton from '../components/BackButton';
 import CustomTabBar from '../components/CustomTabBar';
 import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const RootStack = createStackNavigator();
+const ProfileStackNav = createStackNavigator();
 
-function ProfileStack({ onLogout }) {
-  const PS = createStackNavigator();
+function ProfileStack() {
   const { colors } = useTheme();
   return (
-    <PS.Navigator
+    <ProfileStackNav.Navigator
       screenOptions={{
         headerShown: true,
         headerStyle: { backgroundColor: colors.primary },
@@ -31,58 +35,73 @@ function ProfileStack({ onLogout }) {
         headerLeft: () => <BackButton />,
       }}
     >
-      <PS.Screen name="ProfileHome" options={{ title: 'โปรไฟล์' }}>
-        {(props) => <ProfileScreen {...props} onLogout={onLogout} />}
-      </PS.Screen>
-      <PS.Screen name="Favorites" component={FavoriteScreen} options={{ title: 'รายการโปรด' }} />
-      <PS.Screen name="Saved" component={SavedScreen} options={{ title: 'ที่บันทึก' }} />
-    </PS.Navigator>
+      <ProfileStackNav.Screen
+        name="ProfileHome"
+        component={ProfileScreen}
+        options={{ title: 'โปรไฟล์' }}
+      />
+      <ProfileStackNav.Screen
+        name="Favorites"
+        component={FavoriteScreen}
+        options={{ title: 'รายการโปรด' }}
+      />
+      <ProfileStackNav.Screen
+        name="Saved"
+        component={SavedScreen}
+        options={{ title: 'ที่บันทึก' }}
+      />
+      <ProfileStackNav.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{ title: 'เปลี่ยนรหัสผ่าน' }}
+      />
+      <ProfileStackNav.Screen
+        name="Language"
+        component={LanguageScreen}
+        options={{ title: 'ภาษา' }}
+      />
+      <ProfileStackNav.Screen
+        name="Statistics"
+        component={StatisticsScreen}
+        options={{ title: 'สถิติ' }}
+      />
+      <ProfileStackNav.Screen
+        name="ManageModels"
+        component={ManageModelsScreen}
+        options={{ title: 'จัดการโมเดล' }}
+      />
+    </ProfileStackNav.Navigator>
   );
 }
 
-function MainTabs({ onLogout }) {
-  const { colors } = useTheme();
+function MainTabs() {
+  // ❗️ปิด header ของ Tab ทั้งหมด เพื่อไม่ให้ซ้อนกับ header ที่ HomeScreen วาดเอง
   return (
-    <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.primary },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
-        headerLeft: () => <BackButton />,
-      }}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'หน้าหลัก' }} />
+    <Tab.Navigator tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'ARWheel' }} />
       <Tab.Screen name="AR" component={ARScreen} options={{ title: 'AR' }} />
-      <Tab.Screen name="Profile" options={{ title: 'โปรไฟล์', headerShown: false }}>
-        {() => <ProfileStack onLogout={onLogout} />}
-      </Tab.Screen>
+      <Tab.Screen name="Profile" component={ProfileStack} options={{ title: 'โปรไฟล์' }} />
     </Tab.Navigator>
   );
 }
 
-export default function AppNavigator({ onLogout }) {
+export default function AppNavigator() {
   const { colors } = useTheme();
-  const MainTabsWrapper = (props) => <MainTabs {...props} onLogout={onLogout} />;
-
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* ✅ แท็บหลัก */}
-      <Stack.Screen name="MainTabs" component={MainTabsWrapper} />
-
-      {/* ✅ หน้าโมเดลแบบสแตกเดี่ยว (ไม่มีปุ่มในแท็บ) */}
-      <Stack.Screen
-        name="Models"
-        component={ModelScreen}
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="MainTabs" component={MainTabs} />
+      <RootStack.Screen
+        name="ModelDetail"
+        component={ModelDetailScreen}
         options={{
           headerShown: true,
+          title: 'รายละเอียดโมเดล',
           headerStyle: { backgroundColor: colors.primary },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold' },
-          title: 'โมเดล',
           headerLeft: () => <BackButton />,
         }}
       />
-    </Stack.Navigator>
+    </RootStack.Navigator>
   );
 }

@@ -6,7 +6,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -34,7 +36,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for AR wheel preview."
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }

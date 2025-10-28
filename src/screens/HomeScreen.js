@@ -1,54 +1,61 @@
 // src/screens/HomeScreen.js
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
+  Dimensions, FlatList, StatusBar,
 } from 'react-native';
-  import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import SearchBar from '../components/SearchBar';
 
 const { width } = Dimensions.get('window');
 const SIDE = 16;
-const CARD_W = 160;
+const GAP = 12;
+const CARD_W = (width - SIDE * 2 - GAP) / 2;
 
-const HERO_IMAGES = [
-  'https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1080&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1542281286-9e0a16bb7366?q=80&w=1080&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop',
+const MODELS = [
+  { id: 1, name: 'Sport Classic', brand: 'Racing Pro',  price: 8900, size: 15, material: 'Alloy',  img: 'https://images.unsplash.com/photo-1617469165781-8dca0d24dd47?q=80&w=640&auto=format&fit=crop' },
+  { id: 2, name: 'Urban Style',   brand: 'City Drive',  price: 7500, size: 15, material: 'Steel',  img: 'https://images.unsplash.com/photo-1595717579655-587eb7c1575e?q=80&w=640&auto=format&fit=crop' },
+  { id: 3, name: 'Performance Pro',brand:'Racing Elite', price:10500, size: 16, material: 'Alloy',  img: 'https://images.unsplash.com/photo-1517946132621-7a3bb2f0b2ae?q=80&w=640&auto=format&fit=crop' },
+  { id: 4, name: 'Modern Design', brand:'Urban Tech',    price: 9800, size: 16, material: 'Forged', img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=640&auto=format&fit=crop' },
+  { id: 5, name: 'Ultra Sport',    brand:'Max Perf.',     price:12800, size: 17, material: 'Alloy',  img: 'https://images.unsplash.com/photo-1558980394-0c6232b361ab?q=80&w=640&auto=format&fit=crop' },
+  { id: 6, name: 'Executive Line', brand:'Luxury Motors', price:15800, size: 17, material: 'Forged', img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=640&auto=format&fit=crop' },
 ];
 
-const FEATURED = [
-  { id: 1, name: 'Sport Pro', brand: 'Racing Elite', price: 12500, img: 'https://images.unsplash.com/photo-1592813630413-9f0402c2fd90?q=80&w=800&auto=format&fit=crop' },
-  { id: 2, name: 'Urban Style', brand: 'City Drive', price: 9800,  img: 'https://images.unsplash.com/photo-1517946132621-7a3bb2f0b2ae?q=80&w=800&auto=format&fit=crop' },
-  { id: 3, name: 'Luxury Master', brand: 'Premium Line', price: 18500, img: 'https://images.unsplash.com/photo-1595717579655-587eb7c1575e?q=80&w=800&auto=format&fit=crop' },
-  { id: 4, name: 'Street Racing', brand: 'Speed Max', price: 15200, img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=800&auto=format&fit=crop' },
-];
-
-const POP_SIZES = ['15"', '16"', '17"', '18"', '19"'];
-
-function QuickAction({ icon, label, onPress, colors }) {
+function Chip({ text }) {
   return (
-    <TouchableOpacity style={styles.quickItem} onPress={onPress} activeOpacity={0.9}>
-      <LinearGradient colors={[colors.primary, colors.primaryPressed]} style={styles.quickIconWrap}>
-        <Ionicons name={icon} size={22} color="#fff" />
-      </LinearGradient>
-      <Text style={[styles.quickText, { color: colors.text }]} numberOfLines={1}>{label}</Text>
-    </TouchableOpacity>
+    <View style={styles.chip}>
+      <Text style={{ color: '#cbd5e1', fontSize: 11, fontWeight: '700' }}>{text}</Text>
+    </View>
   );
 }
 
-function WheelCard({ item, colors }) {
+function WheelCard({ item, onPress, onToggleFav, fav }) {
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} activeOpacity={0.9}>
+    <TouchableOpacity
+      style={[styles.card, { width: CARD_W, backgroundColor: '#0c1117' }]}
+      activeOpacity={0.9}
+      onPress={onPress}
+    >
       <Image source={{ uri: item.img }} style={styles.cardImg} />
+      <TouchableOpacity
+        style={[styles.favBtn, { backgroundColor: '#0c1117cc', borderColor: '#1f2937' }]}
+        onPress={onToggleFav}
+      >
+        <Ionicons name={fav ? 'heart' : 'heart-outline'} size={18} color={fav ? '#f43f5e' : '#e5e7eb'} />
+      </TouchableOpacity>
       <View style={styles.cardBody}>
-        <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
-        <Text style={[styles.cardSub, { color: colors.textDim }]} numberOfLines={1}>{item.brand}</Text>
-        <Text style={[styles.cardPrice, { color: colors.primary }]}>฿{item.price.toLocaleString()}</Text>
-      </View>
-      <View style={[styles.cardFav, { backgroundColor: `${colors.bg}dd`, borderColor: colors.border }]}>
-        <Ionicons name="heart-outline" size={18} color={colors.textDim} />
+        <Text style={[styles.cardTitle, { color: '#fff' }]} numberOfLines={1}>{item.name}</Text>
+        <Text style={[styles.cardSub, { color: '#9aa3af' }]} numberOfLines={1}>{item.brand}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Text style={[styles.cardPrice, { color: '#5B9BFF' }]}>฿{item.price.toLocaleString()}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
+          <Chip text={`${item.size}"`} />
+          <Chip text={item.material} />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -57,183 +64,146 @@ function WheelCard({ item, colors }) {
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const heroDots = useMemo(() => HERO_IMAGES.map((_, i) => i), []);
+  const insets = useSafeAreaInsets();
+
+  const [q, setQ] = useState('');
+  const [favs, setFavs] = useState({});
+
+  const data = useMemo(() => {
+    if (!q.trim()) return MODELS;
+    const k = q.trim().toLowerCase();
+    return MODELS.filter(m =>
+      m.name.toLowerCase().includes(k) ||
+      m.brand.toLowerCase().includes(k) ||
+      String(m.size).includes(k) ||
+      m.material.toLowerCase().includes(k)
+    );
+  }, [q]);
+
+  const toggleFav = (id) => setFavs((p) => ({ ...p, [id]: !p[id] }));
+
+  const renderItem = ({ item }) => (
+    <WheelCard
+      item={item}
+      fav={!!favs[item.id]}
+      onToggleFav={() => toggleFav(item.id)}
+      onPress={() => navigation.navigate('ModelDetail', {
+        model: {
+          name: item.name,
+          price: item.price,
+          colors: ['#c49a6c', '#6e6e6e', '#161616'],
+          diameter: `${item.size}"`,
+          width: '7.5J',
+          offset: 'ET+35',
+          bolt: '5x114.3',
+          material: item.material,
+          weight: '8.6 kg',
+          brand: item.brand,
+          origin: 'made in japan',
+          img: item.img,
+        }
+      })}
+    />
+  );
 
   return (
-    <LinearGradient colors={[colors.primary, colors.primaryPressed]} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* HERO */}
-        <View style={styles.heroWrap}>
-          <View style={[styles.heroCard, { backgroundColor: colors.card }]}>
-            <View style={styles.heroHeader}>
-              <View style={styles.heroTitleRow}>
-                <Ionicons name="car-sport" size={24} color={colors.primary} />
-                <Text style={[styles.heroTitle, { color: colors.text }]}>ยินดีต้อนรับสู่ AR Wheel</Text>
-              </View>
-              <Text style={[styles.heroSub, { color: colors.textDim }]}>
-                ทดลองล้อแม็กซ์ด้วยเทคโนโลยี AR
-              </Text>
-            </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }} edges={['top']}>
+      {/* ทำให้ตัวอักษรอ่านง่ายบนพื้นหลังเข้ม */}
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-            {/* Hero gallery */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              decelerationRate="fast"
-              snapToInterval={width - SIDE * 2}
-              contentContainerStyle={{ paddingHorizontal: 0 }}
-              style={{ marginTop: 6 }}
-            >
-              {HERO_IMAGES.map((uri) => (
-                <Image key={uri} source={{ uri }} style={[styles.heroImage, { width: width - SIDE * 2 }]} />
-              ))}
-            </ScrollView>
-
-            {/* dots */}
-            <View style={styles.dotsRow}>
-              {heroDots.map((i) => <View key={i} style={[styles.dot, { backgroundColor: colors.border }]} />)}
-            </View>
-
-            {/* quick actions */}
-            <View style={styles.quickRow}>
-              <QuickAction
-                icon="camera"
-                label="เปิดกล้อง AR"
-                colors={colors}
-                onPress={() => navigation.navigate('AR')}
-              />
-              <QuickAction
-                icon="cube"
-                label="ดูโมเดล 3D"
-                colors={colors}
-                onPress={() => navigation.navigate('Models')}
-              />
-              <QuickAction
-                icon="heart"
-                label="รายการโปรด"
-                colors={colors}
-                onPress={() => navigation.navigate('Profile', { screen: 'Favorites' })}
-              />
-            </View>
-          </View>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.primary }}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        {/* Header: ARWheel + หัวใจ (เว้นระยะจาก safe area แล้ว) */}
+        <View
+          style={{
+            paddingTop: 8,              // ระยะเผื่อใต้รอยบาก
+            paddingHorizontal: SIDE,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22 }}>ARWheel</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Profile', { screen: 'Favorites' })}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="heart-outline" size={22} color="#fff" />
+          </TouchableOpacity>
         </View>
 
-        {/* PROMO BANNER */}
-        <TouchableOpacity activeOpacity={0.9} style={{ paddingHorizontal: SIDE }}>
-          <View style={[styles.promo, { borderColor: colors.border, backgroundColor: colors.card }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={[styles.promoBadge, { backgroundColor: '#fca311' }]}>
-                <Text style={styles.promoBadgeText}>โปร</Text>
-              </View>
-              <Text style={[styles.promoText, { color: colors.text }]}>
-                ลด 15% สำหรับรุ่น Sport Pro วันนี้เท่านั้น!
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
-          </View>
-        </TouchableOpacity>
-
-        {/* FEATURED */}
-        <View style={{ paddingHorizontal: SIDE, marginTop: 14 }}>
-          <Text style={[styles.sectionTitle, { color: colors.bg }]}>ล้อแม็กซ์แนะนำ</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {FEATURED.map((w) => (
-              <View key={w.id} style={{ marginRight: 12 }}>
-                <WheelCard item={w} colors={colors} />
-              </View>
-            ))}
-          </ScrollView>
+        {/* SearchBar */}
+        <View style={{ paddingHorizontal: SIDE, marginTop: 10 }}>
+          <SearchBar value={q} onChangeText={setQ} onSubmitEditing={() => {}} />
         </View>
 
-        {/* POPULAR SIZES */}
-        <View style={{ paddingHorizontal: SIDE, marginTop: 14 }}>
-          <Text style={[styles.sectionTitle, { color: colors.bg }]}>ขนาดยอดนิยม</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 6 }}>
-            {POP_SIZES.map((s) => (
-              <TouchableOpacity key={s} style={[styles.sizeChip, { borderColor: colors.border, backgroundColor: colors.bg }]} onPress={() => navigation.navigate('Models')}>
-                <Text style={[styles.sizeText, { color: colors.primary }]}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        {/* ล้อแม็กซ์แนะนำ + ปุ่มตัวกรอง */}
+        <View
+          style={{
+            paddingHorizontal: SIDE,
+            marginTop: 16,
+            marginBottom: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '900' }}>ล้อแม็กซ์แนะนำ</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Models')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 10,
+              backgroundColor: '#0c1117',
+            }}
+          >
+            <Ionicons name="options-outline" size={16} color="#cbd5e1" />
+            <Text style={{ color: '#cbd5e1', marginLeft: 6, fontSize: 12, fontWeight: '700' }}>ตัวกรอง</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* TIPS */}
-        <View style={{ paddingHorizontal: SIDE, marginTop: 6 }}>
-          <View style={[styles.tipsCard, { backgroundColor: colors.card }]}>
-            <View style={styles.tipRow}>
-              <Ionicons name="scan" size={20} color={colors.primary} />
-              <Text style={[styles.tipText, { color: colors.text }]}>เล็งกล้องไปที่ล้อแล้วกดปุ่มถ่ายเพื่อเริ่ม AR</Text>
-            </View>
-            <View style={styles.tipRow}>
-              <Ionicons name="color-palette" size={20} color={colors.primary} />
-              <Text style={[styles.tipText, { color: colors.text }]}>เลือกขนาด/สี/สไตล์ได้จากหน้า AR และโมเดล</Text>
-            </View>
-            <View style={styles.tipRow}>
-              <Ionicons name="heart" size={20} color={colors.primary} />
-              <Text style={[styles.tipText, { color: colors.text }]}>กดหัวใจเพื่อบันทึกไว้ดูใน “รายการโปรด”</Text>
-            </View>
-          </View>
+        {/* Grid 2 คอลัมน์ (เลื่อนแนวตั้ง) */}
+        <View style={{ paddingHorizontal: SIDE }}>
+          <FlatList
+            data={data}
+            keyExtractor={(it) => String(it.id)}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GAP }}
+            renderItem={renderItem}
+            scrollEnabled={false}
+          />
         </View>
       </ScrollView>
-    </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  heroWrap: { paddingHorizontal: SIDE, paddingTop: 10 },
-  heroCard: {
-    borderRadius: 24,
-    padding: 14,
-    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 }, elevation: 6,
+  card: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 0,
   },
-  heroHeader: { paddingHorizontal: 6, paddingBottom: 6 },
-  heroTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  heroTitle: { fontSize: 20, fontWeight: '800' },
-  heroSub: { marginTop: 2, fontSize: 12 },
-  heroImage: { height: 170, borderRadius: 16, marginRight: 10 },
-  dotsRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 8 },
-  dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 3 },
-
-  quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
-  quickItem: { flex: 1, alignItems: 'center' },
-  quickIconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
-  quickText: { fontSize: 12, marginTop: 6 },
-
-  promo: {
-    marginTop: 14, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  cardImg: { width: '100%', height: CARD_W * 0.62, backgroundColor: '#0a0f14' },
+  favBtn: {
+    position: 'absolute',
+    top: 10, right: 10,
+    width: 32, height: 32, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center',
     borderWidth: 1,
   },
-  promoBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginRight: 8 },
-  promoBadgeText: { color: '#fff', fontWeight: '800', fontSize: 12 },
-  promoText: { fontWeight: '700' },
-
-  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8 },
-
-  card: {
-    width: CARD_W, borderRadius: 18, overflow: 'hidden',
-    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 }, elevation: 4,
-  },
-  cardImg: { width: '100%', height: 110 },
-  cardBody: { padding: 12 },
-  cardTitle: { fontSize: 14, fontWeight: '800' },
+  cardBody: { padding: 12, backgroundColor: '#0c1117' },
+  cardTitle: { fontSize: 14, fontWeight: '900' },
   cardSub: { fontSize: 12, marginTop: 2 },
-  cardPrice: { fontSize: 14, fontWeight: '900', marginTop: 6 },
-  cardFav: {
-    position: 'absolute', top: 8, right: 8,
-    width: 30, height: 30, borderRadius: 15,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1,
+  cardPrice: { fontSize: 14, fontWeight: '900' },
+  chip: {
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 10, backgroundColor: '#111827',
+    borderWidth: 1, borderColor: '#1f2937',
   },
-
-  sizeChip: {
-    borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8, borderWidth: 1,
-  },
-  sizeText: { fontWeight: '800', fontSize: 12 },
-
-  tipsCard: { borderRadius: 16, padding: 14, marginTop: 10 },
-  tipRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 5 },
-  tipText: { fontSize: 13 },
 });

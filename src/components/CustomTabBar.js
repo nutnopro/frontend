@@ -1,25 +1,33 @@
+// src/components/CustomTabBar.js
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 
-const DIAMETER = 72;            // ขนาดปุ่ม AR
-const RADIUS   = DIAMETER / 2;
-const SPACER_W = DIAMETER + 24; // เว้นช่องว่างกลางให้พอ
+const DIAMETER = 72;
+const RADIUS = DIAMETER / 2;
+const SPACER_W = DIAMETER + 24;
 
 export default function CustomTabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const [barW, setBarW] = useState(0);
 
-  const leftRoute   = state.routes[0]; // Home
-  const middleRoute = state.routes[1]; // AR
-  const rightRoute  = state.routes[2]; // Profile
-
-  const onPress = (route, focused) => {
+  const onPress = (routeName) => {
+    if (!routeName) return;
+    const route = state.routes.find(r => r.name === routeName);
+    if (!route) return;
+    const focused = state.routes[state.index]?.name === routeName;
     const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-    if (!focused && !e.defaultPrevented) navigation.navigate(route.name);
+    if (e.defaultPrevented) return;
+
+    if (routeName === 'Profile') {
+      // ไปหน้า root ของโปรไฟล์เสมอ (แก้เด้งค้างหน้า Favorites)
+      navigation.navigate('Profile', { screen: 'ProfileHome' });
+    } else {
+      if (!focused) navigation.navigate(route.name);
+    }
   };
 
   return (
@@ -31,41 +39,27 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
         ]}
         onLayout={e => setBarW(e.nativeEvent.layout.width)}
       >
-        {/* LEFT */}
         <TabItem
-          iconFocused="home"
-          iconDefault="home-outline"
+          active={state.routes[state.index]?.name === 'Home'}
+          iconOn="home"
+          iconOff="home-outline"
           label="หน้าหลัก"
-          route={leftRoute}
-          state={state}
-          index={0}
           colors={colors}
-          onPress={onPress}
+          onPress={() => onPress('Home')}
         />
-
-        {/* เว้นช่องตรงกลาง (ตามขนาดปุ่ม) */}
         <View style={{ width: SPACER_W }} />
-
-        {/* RIGHT */}
         <TabItem
-          iconFocused="person"
-          iconDefault="person-outline"
+          active={state.routes[state.index]?.name === 'Profile'}
+          iconOn="person"
+          iconOff="person-outline"
           label="โปรไฟล์"
-          route={rightRoute}
-          state={state}
-          index={2}
           colors={colors}
-          onPress={onPress}
+          onPress={() => onPress('Profile')}
         />
-
-        {/* CENTER AR — ตำแหน่งคำนวณจากความกว้างจริงของแถบ */}
         <TouchableOpacity
           activeOpacity={0.95}
-          onPress={() => onPress(middleRoute, state.index === 1)}
-          style={[
-            styles.centerBtnWrap,
-            { left: Math.max(0, (barW - DIAMETER) / 2) } // เป๊ะกึ่งกลาง
-          ]}
+          onPress={() => onPress('AR')}
+          style={[styles.centerBtnWrap, { left: Math.max(0, (barW - DIAMETER) / 2) }]}
         >
           <View style={[
             styles.centerBtn,
@@ -80,22 +74,11 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   );
 }
 
-function TabItem({ iconFocused, iconDefault, label, route, state, index, colors, onPress }) {
-  const focused = state.index === index;
+function TabItem({ active, iconOn, iconOff, label, colors, onPress }) {
   return (
-    <TouchableOpacity
-      style={styles.item}
-      activeOpacity={0.9}
-      onPress={() => onPress(route, focused)}
-    >
-      <Ionicons
-        name={focused ? iconFocused : iconDefault}
-        size={22}
-        color={focused ? colors.primary : colors.textDim}
-      />
-      <Text style={[styles.lbl, { color: focused ? colors.primary : colors.textDim }]} numberOfLines={1}>
-        {label}
-      </Text>
+    <TouchableOpacity style={styles.item} activeOpacity={0.9} onPress={onPress}>
+      <Ionicons name={active ? iconOn : iconOff} size={22} color={active ? colors.primary : colors.textDim} />
+      <Text numberOfLines={1} style={[styles.lbl, { color: active ? colors.primary : colors.textDim }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -118,7 +101,6 @@ const styles = StyleSheet.create({
   },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 2 },
   lbl: { fontSize: 12, fontWeight: '600' },
-
   centerBtnWrap: { position: 'absolute', top: -28, zIndex: 20 },
   centerBtn: { alignItems: 'center', justifyContent: 'center' },
   centerTxt: { color: '#fff', fontSize: 11, marginTop: 2, fontWeight: '700' },
