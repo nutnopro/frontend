@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Switch,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -42,19 +43,41 @@ export default function ProfileScreen({ navigation, onLogout }) {
   const { colors, isDark, toggleTheme } = useTheme();
   const [notif, setNotif] = useState(true);
 
+  const handleLogoutPress = () => {
+    Alert.alert('ออกจากระบบ', 'คุณต้องการออกจากระบบจริงหรือไม่?', [
+      { text: 'ยกเลิก', style: 'cancel' },
+      {
+        text: 'ออกจากระบบ',
+        style: 'destructive',
+        onPress: () => {
+          if (typeof onLogout === 'function') {
+            onLogout();
+            return;
+          }
+
+          // fallback: reset ไปหน้า Login (ถ้ามี)
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+        },
+      },
+    ]);
+  };
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bg }}
-      // เพิ่ม paddingBottom เพื่อไม่ให้โดนแท็บบาร์บัง
       contentContainerStyle={{ paddingBottom: 160 }}
     >
       {/* Header */}
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1520975922139-a6b6b2924d32?w=1200&q=80&auto=format&fit=crop',
+          uri:
+            'https://images.unsplash.com/photo-1520975922139-a6b6b2924d32?w=1200&q=80&auto=format&fit=crop',
         }}
         style={styles.headerBg}
-        imageStyle={{ opacity: 0.25 }}
+        imageStyle={{ opacity: 0.18 }}
       >
         <View style={styles.headerCard}>
           <View style={[styles.avatar, { borderColor: '#fff' }]}>
@@ -64,12 +87,21 @@ export default function ProfileScreen({ navigation, onLogout }) {
             </View>
           </View>
 
-          <Text style={styles.storeName}>store_name</Text>
-          <Text style={styles.email}>sample@gmail.com</Text>
-          <Text style={styles.email}>phone_number</Text>
-          <Text style={styles.email}>address</Text>
+          <Text style={[styles.storeName, { color: colors.text }]}>
+            store_name
+          </Text>
+          <Text style={[styles.email, { color: colors.textDim }]}>
+            sample@gmail.com
+          </Text>
+          <Text style={[styles.email, { color: colors.textDim }]}>
+            phone_number
+          </Text>
+          <Text style={[styles.email, { color: colors.textDim }]}>address</Text>
 
-          <TouchableOpacity style={styles.editBtn} onPress={() => {}}>
+          <TouchableOpacity
+            style={[styles.editBtn, { backgroundColor: colors.primary }]}
+            onPress={() => {}}
+          >
             <Text style={styles.editBtnTxt}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -133,24 +165,37 @@ export default function ProfileScreen({ navigation, onLogout }) {
           colors={colors}
           icon="settings-outline"
           title="AR preferences"
-          onPress={() => navigation.navigate('ARPreferences')}
+          onPress={() => {
+            try {
+              navigation.navigate('ARPreferences');
+            } catch (e) {
+              // ignore if not available
+            }
+          }}
         />
 
-        {/* --- Logout Row (ชัดเจน ไม่ถูกบัง) --- */}
+        {/* Logout Row */}
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => navigation.navigate('Logout', { onConfirm: onLogout })}
-          style={styles.logoutRow}
+          onPress={handleLogoutPress}
+          style={[
+            styles.logoutRow,
+            { backgroundColor: isDark ? '#2b1113' : '#fff1f0' },
+          ]}
         >
-          <View style={styles.logoutIconWrap}>
+          <View
+            style={[
+              styles.logoutIconWrap,
+              { backgroundColor: isDark ? '#3b1a1b' : '#ffecec' },
+            ]}
+          >
             <Ionicons name="log-out-outline" size={18} color="#ff4d4f" />
           </View>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={[styles.logoutText, { color: '#ff4d4f' }]}>Logout</Text>
           <Ionicons name="chevron-forward" size={18} color="#ff9a9a" />
         </TouchableOpacity>
       </View>
 
-      {/* กันเผื่อพื้นที่เพิ่มด้านล่างอีกชั้น (เผื่อเครื่องที่แท็บบาร์สูง) */}
       <View style={{ height: 24 }} />
     </ScrollView>
   );
@@ -185,10 +230,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  storeName: { color: '#fff', fontWeight: '800', fontSize: 18, marginTop: 10 },
-  email: { color: '#E9ECFF', fontSize: 12, marginTop: 2 },
+  storeName: { fontWeight: '800', fontSize: 18, marginTop: 10 },
+  email: { fontSize: 12, marginTop: 2 },
   editBtn: {
-    backgroundColor: '#0e1b33',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
@@ -215,14 +259,13 @@ const styles = StyleSheet.create({
   rowTitle: { fontWeight: '700', fontSize: 14 },
   rowSub: { marginTop: 2, fontSize: 12 },
 
-  // --- Logout styles ---
+  // Logout styles
   logoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     borderRadius: 12,
     marginTop: 8,
-    backgroundColor: '#fff1f0',
     borderWidth: 1,
     borderColor: '#ffd6d6',
   },
@@ -233,7 +276,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    backgroundColor: '#ffecec',
   },
-  logoutText: { flex: 1, fontWeight: '800', color: '#ff4d4f', fontSize: 14 },
+  logoutText: { flex: 1, fontWeight: '800', fontSize: 14 },
 });
